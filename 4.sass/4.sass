@@ -1,0 +1,78 @@
+@import '4_helper'
+
+@function boards-with-changed-value($boards, $index, $x, $y, $value)
+  $new_row: set-nth(nth(nth($boards, $index), $x), $y, $value)
+  $new_board: set-nth(nth($boards, $index), $x, $new_row)
+  $boards: set-nth($boards, $index, $new_board)
+
+  @return $boards
+
+@function is-winner($board)
+  $size: length($board)
+  $hits-x: 0
+  $hits-y: 0
+
+  @for $i from 1 through $size
+    @for $j from 1 through $size
+      @if nth(nth($board, $i), $j) == -1
+        $hits-y: $hits-y + 1
+      @if nth(nth($board, $j), $i) == -1
+        $hits-x: $hits-x + 1
+    @if $hits-x == $size or $hits-y == $size
+      @return true
+    $hits-x: 0
+    $hits-y: 0
+
+  @return false
+
+@function count-sum($board)
+  $sum: 0
+
+  @for $i from 1 through 5
+    @for $j from 1 through 5
+      $n: nth(nth($board, $i), $j)
+      @if $n > 0
+        $sum: $sum + $n
+  
+  @return $sum
+
+@function part-1()
+  $boards-in-use: $boards
+
+  @each $number in $numbers
+    @for $board-index from 1 through length($boards)
+      @for $i from 1 through 5
+        @for $j from 1 through 5
+          @if nth(nth(nth($boards-in-use, $board-index), $i), $j) == $number
+            $boards-in-use: boards-with-changed-value($boards-in-use, $board-index, $i, $j, -1)
+
+      @if is-winner(nth($boards-in-use, $board-index))
+        @return count-sum(nth($boards-in-use, $board-index)) * $number
+
+  @return 'no winner'
+
+@function part-2()
+  $boards-in-use: $boards
+  $completed: 0
+
+  @each $number in $numbers
+    @for $board-index from 1 through length($boards)
+      @if nth(nth(nth($boards-in-use, $board-index), 1), 1) != -2
+        @for $i from 1 through 5
+          @for $j from 1 through 5
+            @if nth(nth(nth($boards-in-use, $board-index), $i), $j) == $number
+              $boards-in-use: boards-with-changed-value($boards-in-use, $board-index, $i, $j, -1)
+
+        @if is-winner(nth($boards-in-use, $board-index))
+          $completed: $completed + 1
+          @if $completed == length($boards-in-use)
+            @return count-sum(nth($boards-in-use, $board-index)) * $number
+          $boards-in-use: boards-with-changed-value($boards-in-use, $board-index, 1, 1, -2)
+
+  @return 'no last winner'
+
+.part-1
+  content: part-1()
+
+.part-2
+  content: part-2()
